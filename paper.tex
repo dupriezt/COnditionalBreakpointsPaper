@@ -1,0 +1,200 @@
+%-----------------------------------------------------------------------------
+%
+%               Template for sigplanconf LaTeX Class
+%
+% Name:         sigplanconf-template.tex
+%
+% Purpose:      A template for sigplanconf.cls, which is a LaTeX 2e class
+%               file for SIGPLAN conference proceedings.
+%
+% Guide:        Refer to "Author's Guide to the ACM SIGPLAN Class,"
+%               sigplanconf-guide.pdf
+%
+% Author:       Paul C. Anagnostopoulos
+%               Windfall Software
+%               978 371-2316
+%               paul@windfall.com
+%
+% Created:      15 February 2005
+%
+%-----------------------------------------------------------------------------
+
+
+\documentclass[preprint,nonatbib]{sigplanconf}
+
+% The following \documentclass options may be useful:
+
+% preprint       Remove this option only once the paper is in final form.
+%  9pt           Set paper in  9-point type (instead of default 10-point)
+% 11pt           Set paper in 11-point type (instead of default 10-point).
+% numbers        Produce numeric citations with natbib (instead of default author/year).
+% authorversion  Prepare an author version, with appropriate copyright-space text.
+ 
+\usepackage{amsmath}
+\usepackage{hyperref}
+\newcommand\fnurl[2]{%
+\href{#2}{#1}\footnote{\url{#2}}%
+}
+\usepackage[export]{adjustbox} %For images
+\usepackage{listings} %For Source Code snippets
+\usepackage{float} 
+\newcommand{\cL}{{\cal L}}
+
+\usepackage{xspace}
+\usepackage{graphicx}
+
+\usepackage{ifthen}
+\usepackage{alltt}
+
+\usepackage{amsthm}
+
+% \theoremstyle{plain}
+% \newtheorem{thm}{Theorem}[chapter] % reset theorem numbering for each chapter
+\theoremstyle{definition}
+\newtheorem{defn}{Definition} % definition numbers are dependent on theorem numbers
+% \newtheorem{exmp}[thm]{Example} % same for example numbers
+
+\input{macros}
+
+\begin{document}
+
+\special{papersize=8.5in,11in}
+\setlength{\pdfpageheight}{\paperheight}
+\setlength{\pdfpagewidth}{\paperwidth}
+
+\conferenceinfo{IWST}{Month d--d, 2018, Cagliari, Italy}
+\copyrightyear{2018}
+\copyrightdata{978-1-nnnn-nnnn-n/yy/mm}
+\copyrightdoi{nnnnnnn.nnnnnnn}
+
+% For compatibility with auto-generated ACM eRights management
+% instructions, the following alternate commands are also supported.
+%\CopyrightYear{2016}
+%\conferenceinfo{CONF'yy,}{Month d--d, 20yy, City, ST, Country}
+%\isbn{978-1-nnnn-nnnn-n/yy/mm}\acmPrice{\$15.00}
+%\doi{http://dx.doi.org/10.1145/nnnnnnn.nnnnnnn}
+
+% Uncomment the publication rights used.
+%\setcopyright{acmcopyright}
+\setcopyright{acmlicensed}  % default
+%\setcopyright{rightsretained}
+
+%\titlebanner{banner above paper title}        % These are ignored unless
+\preprintfooter{short description of paper}   % 'preprint' option specified.
+
+\title{Conditional Breakpoints on Top of a Reflective Layer}
+% \subtitle{Loading Broken Code in a Live Programming Environment}
+
+\authorinfo{Thomas Dupriez}
+           {ENS Paris-Saclay - Software Language Lab, Vreije Universiteit Brussels}
+           {thomas.dupriez@ens-paris-saclay.fr}
+
+
+\maketitle
+
+\begin{abstract}
+
+\end{abstract}
+
+% 2012 ACM Computing Classification System (CSS) concepts
+% Generate at 'http://dl.acm.org/ccs/ccs.cfm'.
+\begin{CCSXML}
+<ccs2012>
+<concept>
+<concept_id>10011007.10011006.10011008</concept_id>
+<concept_desc>Software and its engineering~General programming languages</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+<concept>
+<concept_id>10003752.10010124.10010138.10010143</concept_id>
+<concept_desc>Theory of computation~Program analysis</concept_desc>
+<concept_significance>300</concept_significance>
+</concept>
+</ccs2012>
+\end{CCSXML}
+
+% \ccsdesc[500]{Software and its engineering~General programming languages}
+% \ccsdesc[300]{Theory of computation~Program analysis}
+% end generated code
+
+% Legacy 1998 ACM Computing Classification System categories are also
+% supported, but not recommended.
+%\category{CR-number}{subcategory}{third-level}[fourth-level]
+%\category{D.3.0}{Programming Languages}{General}
+%\category{F.3.2}{Logics and Meanings of Programs}{Semantics of Programming Languages}[Program analysis]
+
+\keywords
+Debugger, Tool, Stack, Breakpoint
+
+Conditional breakpoints are a very common tool used by developers to acquire knowledge about the execution of a program. Often an IDE feature, the developers place them at strategic points of a program and specify conditions for them. When running the program, the execution will be stopped if it reaches a conditional breakpoint whose condition is fulfilled.
+
+In this paper we focus on a way of implementing these conditional breakpoints: by using the reflective layer of the language itself.
+
+
+
+
+
+
+
+
+
+\section{Introduction}
+
+
+\begin{description}
+\item[Contextual Breakpoints.] What if a developer had the potential to create more powerful and adaptable breakpoints? What would such breakpoints look like? What kind of runtime information should they have access to to be both useful and efficient? their objects? How can we navigate the
+\end{description}
+
+\section{Debugging Terminology}
+
+\textbf{Debugging} \ie
+In Pharo, a program entry point is the first context of a \ct{Process}, usually executing the \ct{Block$>>$\#newProcess} method.
+%In Pharo, an entry point is the starting method of 
+
+\section{A Real Complex Debugging Scenario}\label{secscenario}
+
+\footnote{We setup a repository explaining in details the steps to reproduce the bug in \url{https://github.com/guillep/pillar-bug}}.
+
+\begin{lstlisting}[language=bash]
+$ ./pharo Pharo.image test "Pillar.*"
+[...]
+3182 run, 3182 passes, 0 failures, 0 errors.
+\end{lstlisting}
+
+Checking the tests, the pillar developers observe that the bug happens in an apparently unrelated piece of code, the \\ \ct{PREPubMenuJustHeaderTransformer$>>$actionOn:} method.
+
+\begin{lstlisting}
+PREPubMenuJustHeaderTransformer>>actionOn: anInput
+  ^ (self class writers
+    includes: anInput configuration outputType writerName)
+    ifTrue: [ maxHeader := self maxHeaderOf: anInput input.
+      super actionOn: anInput ]
+    ifFalse: [ anInput ]
+\end{lstlisting}
+
+\emph{conditional breakpoints} by attaching arbitrary boolean expressions to breakpoints, yielding breakpoints that only trigger if the attached expression evaluates to \emph{true}.
+
+\begin{figure}[!htp]
+\begin{lstlisting}
+self haltIf: [ CurrentExecutionEnvironment value isTestEnvironment ].
+\end{lstlisting}
+\caption{Breakpoint that only triggers while tests are run. In Pharo \label{fig:break_tests}}
+\end{figure}
+
+%\appendix
+%\section{Appendix Title}
+
+%\acks
+
+%Acknowledgments, if needed.
+
+% The 'abbrvnat' bibliography style is recommended.
+
+%\bibliographystyle{abbrv}
+\bibliographystyle{alpha}
+\bibliography{rmod,others}
+% The bibliography should be embedded for final submission.
+
+
+
+\end{document}

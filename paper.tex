@@ -86,7 +86,7 @@
 % \subtitle{Loading Broken Code in a Live Programming Environment}
 
 \authorinfo{Thomas Dupriez}
-           {ENS Paris-Saclay - Software Language Lab, Vreije Universiteit Brussels}
+           {ENS Paris-Saclay / Software Language Lab, Vreije Universiteit Brussels}
            {thomas.dupriez@ens-paris-saclay.fr}
 
 
@@ -131,8 +131,19 @@ Conditional breakpoints are a very common tool used by developers to acquire kno
 In this paper we focus on a way of implementing these conditional breakpoints: by using the reflective layer of the language itself.
 
 
+How Truffle+Ruby implements it:~\cite{Seat18a} 
+- Ruby's core library implements the set\_trace\_func function, allowing tools to register a method to be called each time the interpreter encounters certain events, such as moving to a new line of code, entering or leaving a method or raising an exception.
+- inactive wrapper nodes are introduced in the AST at all positions where the user may place a breakpoint (every line). These nodes only check if a method is registered for their line of code. If there is one, they swap themselves with an active node that can contain arbitrary java (because that's the host language of Graal-Truffle) code (a sub ast tree), for example stopping the execution and opening a debugger. Active nodes also check whether a method is registered for their line of code. If there is not, they swap themselves back to an inactive node. The arbitrary code can contain an *if* statement only opening a debugger if a given condition is met.
 
+What's interesting is that since this debugging code is added on the program's AST, it is compiled and optimised by the compiler as if it was part of the method's code.
 
+How we implemented it:
+- Using metalink~\cite{Denk08a} to add, in the bytecode of the method, a message send to a custom object
+- That custom object has one method, which checks the condition of the breakpoint and, if it is satisfied, stops the execution and opens a debugger
+- However, this method doesn't execute in the same scope as the debugged method, so the condition cannot use variables, self, super or thisContext (or rather, they will not have the value they have in the debugged method)
+- To remedy that, we used a metalink feature to forward the value of thisContex in the debugged method to the custom object. We then use various ast manipulations in the condition [describe them] to replace references to variables, self, etc with message sends to the forwarded thisContext, to get the values these would have had if the condition was executed in the debugged method's scope.
+
+Another option we considered was [read emails]
 
 
 
